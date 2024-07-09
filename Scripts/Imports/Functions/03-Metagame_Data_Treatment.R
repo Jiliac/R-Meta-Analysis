@@ -200,7 +200,7 @@ archetype_metrics = function(df, presence){
         .groups = 'drop'
       ) %>%
       filter(Matches > 0) %>%
-      mutate(Presence = 100 * Matches / sum(Matches))
+      mutate(Presence = 100 * Matches / sum(Matches), Archetype = `Archetype$Archetype`)
     
     online_offline_winrate <- metric_df %>%
       group_by(Online) %>%
@@ -229,16 +229,33 @@ archetype_metrics = function(df, presence){
         NormalizedWinRate = NormalizedWins / (NormalizedWins + NormalizedLosses)
       )
     
-    # Recalculate the win rate for online and offline data
-    normalized_online_offline_winrate <- metric_df %>%
-      group_by(Online) %>%
+    metric_df <- metric_df %>%
+      group_by(Archetype) %>%
       summarise(
-        TotalNormalizedWins = sum(NormalizedWins, na.rm = TRUE),
-        TotalNormalizedMatches = sum(NormalizedWins + NormalizedLosses, na.rm = TRUE),
+        Wins = sum(NormalizedWins),
+        Defeats = sum(NormalizedLosses),
+        Draws = sum(Draws),
+        Copies = sum(Copies),
+        Players = sum(Players),
+        Matches = sum(Matches),
+        Presence = sum(Presence),
         .groups = 'drop'
       ) %>%
-      mutate(NormalizedWinRate = TotalNormalizedWins / TotalNormalizedMatches)
-
+      filter(Matches > 0) %>%
+      mutate(Measured.Win.Rate = 100 * (Wins + Draws/3) / Matches)
+    
+    # Calculate Confidence Intervals
+    # Calculate Confidence Intervals using binom.test
+    metric_df$Lower.Bound.of.CI.on.WR <- mapply(FUN = function(wins, matches){
+      binom.test(wins, matches, p = 0.5, alternative = "two.sided", 
+                 conf.level = CIPercent)$conf.int[1] * 100
+    }, metric_df$Wins, metric_df$Matches)
+    
+    metric_df$Upper.Bound.of.CI.on.WR <-  mapply(FUN = function(wins, matches){
+      binom.test(wins, matches, p = 0.5, alternative = "two.sided", 
+                 conf.level = CIPercent)$conf.int[2] * 100
+    }, metric_df$Wins, metric_df$Matches)
+    
   } else {
     metric_df <- df %>%
       group_by(Archetype$Archetype) %>%
@@ -255,7 +272,7 @@ archetype_metrics = function(df, presence){
       mutate(
         Presence = 100 * Matches / sum(Matches),
         Archetype = `Archetype$Archetype`,
-        Measured.Win.Rate = (Wins + Draws/3) / Matches,
+        Measured.Win.Rate = 100 * (Wins + Draws/3) / Matches,
       )
     
     # Aggregate wins and losses by player and archetype
