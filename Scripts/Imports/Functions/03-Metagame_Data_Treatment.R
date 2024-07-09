@@ -185,7 +185,7 @@ archetype_metrics = function(df, presence){
   
   df <- df %>%
     mutate(Online = ifelse(grepl(MTGO_URL, AnchorUri), "Online", "Offline"))
-  
+
   # Group by Archetype and Online status and compute metrics
   metric_df <- df %>%
     group_by(Archetype, Online) %>%
@@ -200,6 +200,43 @@ archetype_metrics = function(df, presence){
     ) %>%
     filter(Matches > 0) %>%
     mutate(Presence = 100 * Matches / sum(Matches))
+  
+  online_offline_winrate <- metric_df %>%
+    group_by(Online) %>%
+    summarise(
+      TotalWins = sum(Wins, na.rm = TRUE),
+      TotalMatches = sum(Matches, na.rm = TRUE),
+      ArtificialLossesNeeded = ifelse(Online == "Online", sum(Wins, na.rm = TRUE) - (sum(Matches, na.rm = TRUE) - sum(Wins, na.rm = TRUE)), 0),
+      .groups = 'drop'
+    )
+  
+  # Extract the number of artificial losses needed
+  artificial_losses <- online_offline_winrate %>%
+    filter(Online == "Online") %>%
+    pull(ArtificialLossesNeeded)
+  
+  # Distribute the artificial losses proportionally to each online archetype
+  metric_df <- metric_df %>%
+    mutate(
+      ArtificialLosses = ifelse(
+        Online == "Online",
+        artificial_losses * (Matches / sum(Matches[Online == "Online"], na.rm = TRUE)),
+        0
+      ),
+      NormalizedWins = Wins,
+      NormalizedLosses = Defeats + ArtificialLosses,
+      NormalizedWinRate = NormalizedWins / (NormalizedWins + NormalizedLosses)
+    )
+  
+  # Recalculate the win rate for online and offline data
+  normalized_online_offline_winrate <- metric_df %>%
+    group_by(Online) %>%
+    summarise(
+      TotalNormalizedWins = sum(NormalizedWins, na.rm = TRUE),
+      TotalNormalizedMatches = sum(NormalizedWins + NormalizedLosses, na.rm = TRUE),
+      .groups = 'drop'
+    ) %>%
+    mutate(NormalizedWinRate = TotalNormalizedWins / TotalNormalizedMatches)
 
   # Aggregate wins and losses by player and archetype
   player_archetype_aggregates <- df %>%
