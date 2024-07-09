@@ -180,31 +180,25 @@ generate_metagame_data = function(df,statShare,presence){
 #'
 #' @examples
 archetype_metrics = function(df, presence){
-  
-  # #For development only
   # df = tournamentDf
   # presence = Presence
   
-  #GET THE LIST OF THE DIFFERENT ARCHETYPES IN THE DATA
-  metric_df = generate_archetype_list(df)
-
-  # Add the data required to computes win rates
-  metric_df = metric_df %>%
-    rowwise() %>%
-    mutate(
-      Wins = sum(df[df$Archetype$Archetype == Archetype,]$Wins),
-      Defeats = sum(df[df$Archetype$Archetype == Archetype,]$Losses),
-      Draws = sum(df[df$Archetype$Archetype == Archetype,]$Draws)
+  df <- df %>%
+    mutate(Online = ifelse(grepl(MTGO_URL, AnchorUri), "Online", "Offline"))
+  
+  # Group by Archetype and Online status and compute metrics
+  metric_df <- df %>%
+    group_by(Archetype, Online) %>%
+    summarise(
+      Wins = sum(Wins),
+      Defeats = sum(Losses),
+      Draws = sum(Draws),
+      Copies = n(),
+      Players = n_distinct(Player),
+      Matches = Wins + Defeats + Draws,
+      .groups = 'drop'
     ) %>%
-    ungroup() %>%
-    filter(Wins + Defeats > 0) %>%
-    rowwise() %>%
-    mutate(
-      Copies = nrow(df[df$Archetype$Archetype == Archetype,]),
-      Players = length(unique(df[df$Archetype$Archetype == Archetype,]$Player)),
-      Matches = Wins + Draws + Defeats
-    ) %>%
-    ungroup()  %>%
+    filter(Matches > 0) %>%
     mutate(Presence = 100 * Matches / sum(Matches))
 
   # Aggregate wins and losses by player and archetype
