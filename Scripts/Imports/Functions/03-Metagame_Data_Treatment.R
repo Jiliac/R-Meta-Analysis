@@ -187,45 +187,25 @@ archetype_metrics = function(df, presence){
   
   #GET THE LIST OF THE DIFFERENT ARCHETYPES IN THE DATA
   metric_df = generate_archetype_list(df)
-  
+
   # Add the data required to computes win rates
-  metric_df$Wins = sapply(X = metric_df$Archetype, 
-                          FUN = function(archetype, df) {
-                            sum(df[df$Archetype$Archetype == 
-                                     archetype,]$Wins)
-                          }, df)
-  metric_df$Defeats = sapply(X = metric_df$Archetype, 
-                             FUN = function(archetype, df) {
-                               sum(df[df$Archetype$Archetype == 
-                                        archetype,]$Losses)
-                             }, df)
-  metric_df$Draws = sapply(X = metric_df$Archetype, 
-                           FUN = function(archetype, df) {
-                             sum(df[df$Archetype$Archetype == 
-                                      archetype,]$Draws)
-                           }, df)
-  
-  # Remove archetypes that appear in the JSON but don't have any recorded match
-  metric_df = metric_df[metric_df$Wins + metric_df$Defeats >0,]
-  
-  # Add presence metrics
-  metric_df$Copies = sapply(X = metric_df$Archetype, 
-                            FUN = function(archetype, df) {
-                              nrow(df[df$Archetype$Archetype == archetype,])
-                            }, df)
-  metric_df$Players = sapply(X = metric_df$Archetype, 
-                             FUN = function(archetype, df) {
-                               length(unique(df[df$Archetype$Archetype == 
-                                                  archetype,]$Player))
-                             }, df)
-  metric_df$Matches = metric_df$Wins + metric_df$Draws + metric_df$Defeats
-  
-  # Compute the presence based on the one expected as parameter
-  metric_df$Presence = unlist(100 * metric_df[presence]/sum(metric_df[presence]))
-  
-  # Compute the win rate and confidence interval on it
-  metric_df$Measured.Win.Rate = (metric_df$Wins + metric_df$Draws / 3) * 100 /
-    metric_df$Matches
+  metric_df = metric_df %>%
+    rowwise() %>%
+    mutate(
+      Wins = sum(df[df$Archetype$Archetype == Archetype,]$Wins),
+      Defeats = sum(df[df$Archetype$Archetype == Archetype,]$Losses),
+      Draws = sum(df[df$Archetype$Archetype == Archetype,]$Draws)
+    ) %>%
+    ungroup() %>%
+    filter(Wins + Defeats > 0) %>%
+    rowwise() %>%
+    mutate(
+      Copies = nrow(df[df$Archetype$Archetype == Archetype,]),
+      Players = length(unique(df[df$Archetype$Archetype == Archetype,]$Player)),
+      Matches = Wins + Draws + Defeats
+    ) %>%
+    ungroup()  %>%
+    mutate(Presence = 100 * Matches / sum(Matches))
 
   # Aggregate wins and losses by player and archetype
   player_archetype_aggregates <- df %>%
