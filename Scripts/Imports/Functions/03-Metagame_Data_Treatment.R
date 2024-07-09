@@ -185,113 +185,134 @@ archetype_metrics = function(df, presence){
   
   df <- df %>%
     mutate(Online = ifelse(grepl(MTGO_URL, AnchorUri), "Online", "Offline"))
-
+  
+  if (apply_artificial_loss_correction) {
   # Group by Archetype and Online status and compute metrics
-  metric_df <- df %>%
-    group_by(Archetype, Online) %>%
-    summarise(
-      Wins = sum(Wins),
-      Defeats = sum(Losses),
-      Draws = sum(Draws),
-      Copies = n(),
-      Players = n_distinct(Player),
-      Matches = Wins + Defeats + Draws,
-      .groups = 'drop'
-    ) %>%
-    filter(Matches > 0) %>%
-    mutate(Presence = 100 * Matches / sum(Matches))
-  
-  online_offline_winrate <- metric_df %>%
-    group_by(Online) %>%
-    summarise(
-      TotalWins = sum(Wins, na.rm = TRUE),
-      TotalMatches = sum(Matches, na.rm = TRUE),
-      ArtificialLossesNeeded = ifelse(Online == "Online", sum(Wins, na.rm = TRUE) - (sum(Matches, na.rm = TRUE) - sum(Wins, na.rm = TRUE)), 0),
-      .groups = 'drop'
-    )
-  
-  # Extract the number of artificial losses needed
-  artificial_losses <- online_offline_winrate %>%
-    filter(Online == "Online") %>%
-    pull(ArtificialLossesNeeded)
-  
-  # Distribute the artificial losses proportionally to each online archetype
-  metric_df <- metric_df %>%
-    mutate(
-      ArtificialLosses = ifelse(
-        Online == "Online",
-        artificial_losses * (Matches / sum(Matches[Online == "Online"], na.rm = TRUE)),
-        0
-      ),
-      NormalizedWins = Wins,
-      NormalizedLosses = Defeats + ArtificialLosses,
-      NormalizedWinRate = NormalizedWins / (NormalizedWins + NormalizedLosses)
-    )
-  
-  # Recalculate the win rate for online and offline data
-  normalized_online_offline_winrate <- metric_df %>%
-    group_by(Online) %>%
-    summarise(
-      TotalNormalizedWins = sum(NormalizedWins, na.rm = TRUE),
-      TotalNormalizedMatches = sum(NormalizedWins + NormalizedLosses, na.rm = TRUE),
-      .groups = 'drop'
-    ) %>%
-    mutate(NormalizedWinRate = TotalNormalizedWins / TotalNormalizedMatches)
-
-  # Aggregate wins and losses by player and archetype
-  player_archetype_aggregates <- df %>%
-    group_by(Player, Archetype$Archetype) %>%
-    summarise(TotalWins = sum(Wins) + sum(Draws) / 3,
-              TotalLosses = sum(Losses),
-              TotalMatches = sum(Wins + Losses + Draws),
-              .groups = 'drop')
-  # Compute win rates at this aggregated level
-  player_archetype_aggregates <- player_archetype_aggregates %>%
-    filter(TotalMatches > 0) %>%
-    mutate(WinRate = TotalWins / TotalMatches)
-
-  # Define a function to apply to each archetype
-  update_CI <- function(archetype) {
-    data_subset <- player_archetype_aggregates[player_archetype_aggregates$`Archetype$Archetype` == archetype, ]
+    metric_df <- df %>%
+      group_by(Archetype$Archetype, Online) %>%
+      summarise(
+        Wins = sum(Wins),
+        Defeats = sum(Losses),
+        Draws = sum(Draws),
+        Copies = n(),
+        Players = n_distinct(Player),
+        Matches = Wins + Defeats + Draws,
+        .groups = 'drop'
+      ) %>%
+      filter(Matches > 0) %>%
+      mutate(Presence = 100 * Matches / sum(Matches))
     
-    if (nrow(data_subset) > 1) {  # Ensure there's enough data to fit a model
-      model <- lm_robust(WinRate ~ 1, weights = TotalMatches, data = data_subset, clusters = data_subset$Player, se_type = "CR2")
-      ci <- confint(model, level = CIPercent)
+    online_offline_winrate <- metric_df %>%
+      group_by(Online) %>%
+      summarise(
+        TotalWins = sum(Wins, na.rm = TRUE),
+        TotalMatches = sum(Matches, na.rm = TRUE),
+        ArtificialLossesNeeded = ifelse(Online == "Online", sum(Wins, na.rm = TRUE) - (sum(Matches, na.rm = TRUE) - sum(Wins, na.rm = TRUE)), 0),
+        .groups = 'drop'
+      )
+    
+    # Extract the number of artificial losses needed
+    artificial_losses <- online_offline_winrate %>%
+      filter(Online == "Online") %>%
+      pull(ArtificialLossesNeeded)
+    
+    # Distribute the artificial losses proportionally to each online archetype
+    metric_df <- metric_df %>%
+      mutate(
+        ArtificialLosses = ifelse(
+          Online == "Online",
+          artificial_losses * (Matches / sum(Matches[Online == "Online"], na.rm = TRUE)),
+          0
+        ),
+        NormalizedWins = Wins,
+        NormalizedLosses = Defeats + ArtificialLosses,
+        NormalizedWinRate = NormalizedWins / (NormalizedWins + NormalizedLosses)
+      )
+    
+    # Recalculate the win rate for online and offline data
+    normalized_online_offline_winrate <- metric_df %>%
+      group_by(Online) %>%
+      summarise(
+        TotalNormalizedWins = sum(NormalizedWins, na.rm = TRUE),
+        TotalNormalizedMatches = sum(NormalizedWins + NormalizedLosses, na.rm = TRUE),
+        .groups = 'drop'
+      ) %>%
+      mutate(NormalizedWinRate = TotalNormalizedWins / TotalNormalizedMatches)
+
+  } else {
+    metric_df <- df %>%
+      group_by(Archetype$Archetype) %>%
+      summarise(
+        Wins = sum(Wins),
+        Defeats = sum(Losses),
+        Draws = sum(Draws),
+        Copies = n(),
+        Players = n_distinct(Player),
+        Matches = Wins + Defeats + Draws,
+        .groups = 'drop'
+      ) %>%
+      filter(Matches > 0) %>%
+      mutate(
+        Presence = 100 * Matches / sum(Matches),
+        Archetype = `Archetype$Archetype`,
+        Measured.Win.Rate = (Wins + Draws/3) / Matches,
+      )
+    
+    # Aggregate wins and losses by player and archetype
+    player_archetype_aggregates <- df %>%
+      group_by(Player, Archetype$Archetype) %>%
+      summarise(TotalWins = sum(Wins) + sum(Draws) / 3,
+                TotalLosses = sum(Losses),
+                TotalMatches = sum(Wins + Losses + Draws),
+                .groups = 'drop')
+    # Compute win rates at this aggregated level
+    player_archetype_aggregates <- player_archetype_aggregates %>%
+      filter(TotalMatches > 0) %>%
+      mutate(WinRate = TotalWins / TotalMatches)
+  
+    # Define a function to apply to each archetype
+    update_CI <- function(archetype) {
+      data_subset <- player_archetype_aggregates[player_archetype_aggregates$`Archetype$Archetype` == archetype, ]
       
-      # Return confidence intervals multiplied by 100 to convert to percentage
-      return(list(Lower = ci[1] * 100, Upper = ci[2] * 100))
-    } else {
-      return(list(Lower = NA, Upper = NA))
+      if (nrow(data_subset) > 1) {  # Ensure there's enough data to fit a model
+        model <- lm_robust(WinRate ~ 1, weights = TotalMatches, data = data_subset, clusters = data_subset$Player, se_type = "CR2")
+        ci <- confint(model, level = CIPercent)
+        
+        # Return confidence intervals multiplied by 100 to convert to percentage
+        return(list(Lower = ci[1] * 100, Upper = ci[2] * 100))
+      } else {
+        return(list(Lower = NA, Upper = NA))
+      }
     }
-  }
-  # Apply the function to each unique archetype and collect results
-  ci_results <- sapply(unique(player_archetype_aggregates$`Archetype$Archetype`), update_CI, simplify = FALSE)
-  ci_data <- do.call(rbind, lapply(ci_results, function(x) data.frame(Lower = x$Lower, Upper = x$Upper)))
-  rownames(ci_data) <- unique(player_archetype_aggregates$`Archetype$Archetype`)  # Setting row names as archetype names
-
-  # Update metric_df
-  get_CI_value <- function(archetype, bound_type) {
-    if(archetype %in% rownames(ci_data)) {
-      return(ci_data[archetype, bound_type])
-    } else {
-      return(NA)
+    # Apply the function to each unique archetype and collect results
+    ci_results <- sapply(unique(player_archetype_aggregates$`Archetype$Archetype`), update_CI, simplify = FALSE)
+    ci_data <- do.call(rbind, lapply(ci_results, function(x) data.frame(Lower = x$Lower, Upper = x$Upper)))
+    rownames(ci_data) <- unique(player_archetype_aggregates$`Archetype$Archetype`)  # Setting row names as archetype names
+  
+    # Update metric_df
+    get_CI_value <- function(archetype, bound_type) {
+      if(archetype %in% rownames(ci_data)) {
+        return(ci_data[archetype, bound_type])
+      } else {
+        return(NA)
+      }
     }
+    metric_df$Lower.Bound.of.CI.on.WR <- sapply(metric_df$Archetype, get_CI_value, bound_type = "Lower")
+    metric_df$Upper.Bound.of.CI.on.WR <- sapply(metric_df$Archetype, get_CI_value, bound_type = "Upper")
+  
+    # Initial count for reference
+    initial_count <- nrow(metric_df)
+    # Adjust lower and upper bounds
+    metric_df$Lower.Bound.of.CI.on.WR <- pmax(metric_df$Lower.Bound.of.CI.on.WR, 0, na.rm = TRUE)
+    metric_df$Upper.Bound.of.CI.on.WR <- pmin(metric_df$Upper.Bound.of.CI.on.WR, 100, na.rm = TRUE)
+    # Calculate the number of affected rows for informational purposes
+    # Count rows where adjustments were applied
+    rows_adjusted_lower <- sum(metric_df$Lower.Bound.of.CI.on.WR == 0, na.rm = TRUE)
+    rows_adjusted_upper <- sum(metric_df$Upper.Bound.of.CI.on.WR == 100, na.rm = TRUE)
+    # Print how many archetype bounds were adjusted
+    print(paste("Number of archetypes with adjusted lower bounds:", rows_adjusted_lower))
+    print(paste("Number of archetypes with adjusted upper bounds:", rows_adjusted_upper))
   }
-  metric_df$Lower.Bound.of.CI.on.WR <- sapply(metric_df$Archetype, get_CI_value, bound_type = "Lower")
-  metric_df$Upper.Bound.of.CI.on.WR <- sapply(metric_df$Archetype, get_CI_value, bound_type = "Upper")
-
-  # Initial count for reference
-  initial_count <- nrow(metric_df)
-  # Adjust lower and upper bounds
-  metric_df$Lower.Bound.of.CI.on.WR <- pmax(metric_df$Lower.Bound.of.CI.on.WR, 0, na.rm = TRUE)
-  metric_df$Upper.Bound.of.CI.on.WR <- pmin(metric_df$Upper.Bound.of.CI.on.WR, 100, na.rm = TRUE)
-  # Calculate the number of affected rows for informational purposes
-  # Count rows where adjustments were applied
-  rows_adjusted_lower <- sum(metric_df$Lower.Bound.of.CI.on.WR == 0, na.rm = TRUE)
-  rows_adjusted_upper <- sum(metric_df$Upper.Bound.of.CI.on.WR == 100, na.rm = TRUE)
-  # Print how many archetype bounds were adjusted
-  print(paste("Number of archetypes with adjusted lower bounds:", rows_adjusted_lower))
-  print(paste("Number of archetypes with adjusted upper bounds:", rows_adjusted_upper))
   
   return(metric_df)
 }
