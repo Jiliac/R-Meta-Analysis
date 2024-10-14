@@ -200,7 +200,7 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
     # Keep only the top1
     resultDf = PaperData[PaperData$Losses <= 1, ]
 
-  } else if (eventType == "Matchup Based") {
+  } else if (eventType == EventTypes[22]) {
     resultDf = recalculate_wins_losses(periodData)
     
   } else{

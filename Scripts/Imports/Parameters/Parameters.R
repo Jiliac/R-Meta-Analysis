@@ -56,7 +56,7 @@ End = "2024-05-27"
 # MTGO Preliminaries = As per name
 
 # Leave this vector untouched if used, to avoid typing mistakes
-EventTypes = c("1" = "All events",
+EventTypes = c("1" = "All events old",
                "2" = "All events Top32",
                "3" = "All events Top8",
                "4" = "All events Top1",
@@ -77,9 +77,9 @@ EventTypes = c("1" = "All events",
                "19" = "MTGO Events X-2 or better",
                "20" = "MTGO Events X-1 or better",
                "21" = "MTGO Preliminaries",
-               "22" = "Matchup Based")
+               "22" = "All events")
 
-EventType = EventTypes[15]
+EventType = EventTypes[22]
 
 #Required metagame share to appear on charts (gets converted to % later)
 ChartShare = 2
