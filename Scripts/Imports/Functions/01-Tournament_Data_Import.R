@@ -95,6 +95,9 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
   periodData$Losses = as.numeric(periodData$Losses)
   periodData$Draws = as.numeric(periodData$Draws)
 
+  # Remove invalid mainboards
+  periodData = filter_invalid_mainboards(periodData)
+
   # Remove decks without scores
   periodData = periodData[!is.na(periodData$Wins),]
   periodData = periodData[!is.na(periodData$Losses),]
@@ -275,7 +278,23 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
   return(resultDf)
 }
 
-#' Recalculate wins and losses based on matchups
+#' Filter out invalid mainboards
+#'
+#' @param df the dataframe containing tournament data
+#'
+#' @return a dataframe with only valid mainboards
+filter_invalid_mainboards = function(df) {
+  valid_rows = sapply(seq_along(df$Mainboard), function(i) {
+    if (df$Archetype$Archetype[i] == "Unknown") {
+      mainboard = df$Mainboard[[i]]
+      total_cards = sum(mainboard$Count)
+      max_card_count = max(mainboard$Count)
+      return(total_cards >= 60 && max_card_count < 5)
+    }
+    return(TRUE)
+  })
+  return(df[valid_rows, ])
+}
 #'
 #' @param df the dataframe containing tournament data
 #'
