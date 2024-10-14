@@ -298,8 +298,8 @@ archetype_metrics = function(df, presence){
 updateStatShare = function(metric_df,ChartShare){
   if(Share.autoupdate){
     StatShare =
-      round(mean(unlist(metric_df$Presence)) / 
-              sum(unlist(metric_df$Presence)) * 100, digits = 2)
+      round(mean(unlist(metric_df$Presence)) /
+        sum(unlist(metric_df$Presence)) * 100, digits = 2)
     ChartShare = max(StatShare, 1)
   }else {
     StatShare = ChartShare
