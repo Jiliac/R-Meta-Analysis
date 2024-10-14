@@ -11,3 +11,7 @@
 *.csv
 *.xlsx
 *.json
+
+entropy
+*.sh
+.aider*

@@ -466,7 +466,7 @@ archetype_tiers = function(metric_df_normalized, tierNames){
 #'
 #' @examples
 generate_matchup_data = function(df, chartShare, presence, archetype = NA){
-  
+
   df_gen = generate_metagame_data(df, chartShare, presence)
   maxArchetype = 17
   # Can only display up to 18 rows before the matrix becomes unreadable

@@ -76,7 +76,8 @@ EventTypes = c("1" = "All events",
                "18" = "MTGO Events Top1",
                "19" = "MTGO Events X-2 or better",
                "20" = "MTGO Events X-1 or better",
-               "21" = "MTGO Preliminaries")
+               "21" = "MTGO Preliminaries",
+               "22" = "Matchup Based")
 
 EventType = EventTypes[15]
 

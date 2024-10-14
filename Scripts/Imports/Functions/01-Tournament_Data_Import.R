@@ -26,6 +26,18 @@ library("jsonlite")
 #' MTGO Events Top32 = MTGO results with a top32 (so not Preliminaries)
 #' MTGO Preliminaries = As per name
 #' @param mtgFormat the format of the tournaments to keep
+#' @param eventType the category of events to keep in the data. It can be:
+#' Event type:
+#' All sources = Everything (except MTGO Leagues - for any filter)
+#' All Events Top32 = Only events with a top32 (aka not MTGO Preliminaries)
+#' Full Meta Events = Only events with the full metagame available (not MTGO Official results)
+#' ManaTraders = ManaTraders Series results
+#' Paper Events Full Meta = Full esults from MTG Melee
+#' Paper Events Top32 = Results of the top32 from MTG Melee
+#' MTGO Official Competitions = Results from the MTGO website
+#' MTGO Events Top32 = MTGO results with a top32 (so not Preliminaries)
+#' MTGO Preliminaries = As per name
+#' Matchup Based = Recalculate wins/losses based on matchups
 #' @param tournamentDataPath the path of the JSON file to import
 #' @param beginning the earliest date to keep in the dataset
 #' @param end the latest date to keep in the dataset
@@ -81,6 +93,7 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
   periodData$Wins = as.numeric(periodData$Wins)
   periodData$Losses = as.numeric(periodData$Losses)
   periodData$Draws = as.numeric(periodData$Draws)
+
   # Remove decks without scores
   periodData = periodData[!is.na(periodData$Wins),]
   periodData = periodData[!is.na(periodData$Losses),]
@@ -91,10 +104,6 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
   periodData = periodData[!grepl("League", periodData$Tournament),]
   # Remove the Team Trio events providing unusable data
   periodData = periodData[!grepl("Team", periodData$Tournament),]
-  
-  if(MtgFormat == "Vintage"){
-    periodData = periodData[!grepl("Canadian Highlander", periodData$Tournament),]
-  }
   
   # /!\ Some events only have a top32, or don't even have one (Preliminary)
   if (eventType == EventTypes[1]) {
@@ -186,6 +195,9 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
                                 periodData$AnchorUri),]
     # Keep only the top1
     resultDf = PaperData[PaperData$Losses <= 1, ]
+
+  } else if (eventType == "Matchup Based") {
+    resultDf = recalculate_wins_losses(periodData)
     
   } else{
     MTGOData = periodData[grep(MTGO_URL,
@@ -262,3 +274,21 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
   return(resultDf)
 }
 
+#' Recalculate wins and losses based on matchups
+#'
+#' @param df the dataframe containing tournament data
+#'
+#' @return a dataframe with recalculated wins and losses
+recalculate_wins_losses = function(df) {
+  df$Wins = 0
+  df$Losses = 0
+  for (i in 1:nrow(df)) {
+    if (!is.null(df$Matchups[[i]])) {
+      matchups = df$Matchups[[i]]
+      df$Wins[i] = sum(matchups$Wins == 2)
+      df$Losses[i] = sum(matchups$Losses == 2)
+    }
+  }
+  df = df[df$Wins + df$Losses > 0, ]
+  return(df)
+}
