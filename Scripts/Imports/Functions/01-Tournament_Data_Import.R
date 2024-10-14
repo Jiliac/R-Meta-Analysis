@@ -10,6 +10,7 @@
 ################################################################################
 
 # install.packages("jsonlite")
+library(readr)
 library("jsonlite")
 
 #' Import and clean tournament data
