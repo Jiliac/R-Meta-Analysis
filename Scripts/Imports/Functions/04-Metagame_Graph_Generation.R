@@ -10,11 +10,14 @@
 ################################################################################
 
 library(dplyr)
+
 library(tidyverse)
 library(ggplot2)
 library(ggrepel)
 library(ggtext)
 library(paletteer)
+
+author_name = "Valentin Manès and Anaël Yahi"
 
 # # For development
 # df = tournamentDf
@@ -110,7 +113,7 @@ metagame_pie_chart = function(df, chartShare, presence, beginning, end,
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank()) + 
     
-    labs(x = NULL, y = NULL, fill = NULL, subtitle = "by Anaël Yahi",
+    labs(x = NULL, y = NULL, fill = NULL, subtitle = paste("by", author_name),
          title = generate_metagame_graph_title(
            presence, beginning, end, eventType, mtgFormat)) + 
     
@@ -167,7 +170,7 @@ metagame_bar_chart =
     geom_text(aes(label = paste0(Share, "%")), hjust = 1.1, size = 4) +
     
     labs(x = NULL, y = NULL, fill = NULL, 
-         title = bar_chart_title, subtitle = "by Anaël Yahi") + 
+         title = bar_chart_title, subtitle = paste("by", author_name)) + 
     
     coord_flip() +
     
@@ -229,7 +232,7 @@ winrates_graph = function(archetypeRankingDf,chartShare,presence,beginning,end,
   winrateGraphSubtitle = 
   paste("Red lines for the average of the bounds of the CI",
         "Green line for the average of the measured winrate", 
-        "by Anaël Yahi", sep = "\n")
+        paste("by", author_name), sep = "\n")
   
   ggplot(most_present_archetypes, aes(x = Archetype, y = Measured.Win.Rate)) + 
     
@@ -331,7 +334,7 @@ boxplot_winrates = function(archetypeRankingDf,tournamentDf,chartShare,presence,
   
   winrateGraphSubtitle = 
     paste("Blue points for the average of the measured winrate", 
-          "by Anaël Yahi", sep = "\n")
+          paste("by", author_name), sep = "\n")
   
   p <- ggplot(most_present_archetypes_df, aes(x=reorder(Archetype,Winrate), y=Winrate)) + 
     geom_boxplot() + 
@@ -412,7 +415,7 @@ tier_list_graph = function(archetypeTiersDf, chartShare, presence,
     " archetypes\n",  "(at least ",chartShare,"% of the ",presence,") between ", 
     beginning, " and ", end, " in ", EventType)
   
-  normalizedSumGraphSubtitle = "by Anaël Yahi"
+  normalizedSumGraphSubtitle = paste("by", author_name)
   
   xDodge = 0
   yDodgeTierExplanation = 0.01
@@ -570,7 +573,7 @@ detailed_winrate_and_presence_graph =
                      mtgFormat, " archetypes\n(at least ",chartShare,
                      "% of the ", presence,") between ", beginning, " and ",
                      end, " in ", eventType)
-  graph_subtitle = paste(gsub("\\.", " ", tier),"by Anaël Yahi")
+  graph_subtitle = paste(gsub("\\.", " ", tier), paste("by", author_name))
   
   archetypeTiersDf$Tiers = unlist(archetypeTiersDf[tier])
   
@@ -663,7 +666,7 @@ simple_winrate_and_presence_graph =
                      end, " in ", eventType)
   
   graph_subtitle=paste("Circle diameters depending on",diameters,
-                       "\nby Anaël Yahi")
+                       paste("\nby", author_name))
   
   avg_presence = mean(archetypeTiersDf$Presence)
   sd_presence = sd(archetypeTiersDf$Presence)
@@ -734,7 +737,7 @@ generate_matchup_matrix = function(muMatrixData,chartShare,presence,beginning,
   
   MUMatrixSubtitle = 
     paste("Win rate of Y (ordinates) against X (abscissa)", 
-          "by Anaël Yahi", sep = "\n")
+          paste("by", author_name), sep = "\n")
   
   if(length(unique(muMatrixData$Archetype1))>1){
     MUMatrixPlot = ggplot(muMatrixData,aes(x = Archetype2, 
