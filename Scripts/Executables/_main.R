@@ -72,7 +72,10 @@ archetypeNormalizedSumDf =
 # Rank.of.Lower.Bound.of.CI.on.WR, Tiers.based.on.Lower.Bound.of.CI.on.WR
 Tiers = c(names(archetypeNormalizedSumDf)[14], names(archetypeMetricsDf)[10])
 TierNames = paste0("Tiers.based.on.",Tiers)
-archetypeWithTiersDf = archetype_tiers(archetypeNormalizedSumDf, TierNames)
+archetypeTiersResult = archetype_tiers(archetypeNormalizedSumDf, TierNames)
+archetypeWithTiersDf = archetypeTiersResult$full_df
+meanData = archetypeTiersResult$mean
+sdData = archetypeTiersResult$sd
 
 # Get the required data to build the match up matrix of the most present
 # archetypes
@@ -136,7 +139,7 @@ tierListName =
   paste0(plotDir,"05_Scatterplot-of-",gsub("\\.", "-", TierNames[2]),
                       "_", MtgFormat, "_", Beginning, "_", End, ".jpg")
 tier_list_graph(archetypeWithTiersDf, StatShare, Presence, Beginning, 
-                End, EventType, MtgFormat, Tiers[2])
+                End, EventType, MtgFormat, Tiers[2], meanData, sdData)
 ggsave(tierListName, width = 80, height = 40, units = "cm")
 dev.off()
 

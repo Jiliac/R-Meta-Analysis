@@ -441,7 +441,21 @@ archetype_tiers = function(metric_df_normalized, tierNames){
     TRUE ~ "Other"
   ))
   
-  return(metric_df_normalized_CI_tier)
+  # Check if there are any "Other" tiers
+  if (any(metric_df_normalized_CI_tier[tierNames[2]] == "Other")) {
+    # Remove "Other" tier archetypes and call recursively
+    others <- metric_df_normalized_CI_tier[metric_df_normalized_CI_tier[tierNames[2]] == "Other", ]
+    metric_df_normalized_CI_tier <- metric_df_normalized_CI_tier[metric_df_normalized_CI_tier[tierNames[2]] != "Other", ]
+    result <- archetype_tiers(metric_df_normalized_CI_tier, tierNames)
+    # Add back the "Other" rows
+    result$full_df <- rbind(result$full_df, others)
+    return(result)
+  }
+  
+  # Return the full dataframe with the last calculated mean and sd
+  list(full_df = metric_df_normalized_CI_tier, 
+       mean = meanLower.Bound.of.CI.on.WR, 
+       sd = sdLower.Bound.of.CI.on.WR)
 }
 
 
