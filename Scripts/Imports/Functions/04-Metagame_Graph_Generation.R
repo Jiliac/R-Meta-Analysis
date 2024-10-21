@@ -382,8 +382,8 @@ boxplot_winrates = function(archetypeRankingDf,tournamentDf,chartShare,presence,
 #' @export
 #'
 #' @examples
-tier_list_graph = function(archetypeTiersDf, chartShare, presence,
-                                beginning, end, eventType, mtgFormat, tier){
+tier_list_graph = function(archetypeTiersDf, chartShare, presence, beginning,
+                           end, eventType, mtgFormat, tier, meanData, sdData){
   
   # # For development only
   # archetypeTiersDf = archetypeWithTiersDf
@@ -396,14 +396,12 @@ tier_list_graph = function(archetypeTiersDf, chartShare, presence,
   # tier = Tiers[1]
   
   # Keep only the most present decks
-  presence_min = chartShare/100*sum(archetypeTiersDf[presence])
+  presence_min = chartShare/100*sum(unlist(archetypeTiersDf[[presence]]))
   most_present_archetypes = 
     archetypeTiersDf[archetypeTiersDf[presence] >= presence_min,]
   
   most_present_archetypes$TiersMetric = unlist(most_present_archetypes[tier])
   
-  meanData = archetypeTiersDf$mean
-  sdData = archetypeTiersDf$sd
   meanPlusSd = meanData + sdData
   meanMinusSd = meanData - sdData
   
