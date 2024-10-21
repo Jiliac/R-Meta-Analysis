@@ -441,7 +441,17 @@ archetype_tiers = function(metric_df_normalized, tierNames){
     TRUE ~ "Other"
   ))
   
-  return(metric_df_normalized_CI_tier)
+  # Check if there are any "Other" tiers
+  if (any(metric_df_normalized_CI_tier[tierNames[1]] == "Other")) {
+    # Remove "Other" tier archetypes and call recursively
+    metric_df_normalized_CI_tier <- metric_df_normalized_CI_tier[metric_df_normalized_CI_tier[tierNames[1]] != "Other", ]
+    return(archetype_tiers(metric_df_normalized_CI_tier, tierNames))
+  }
+  
+  # Return the full dataframe with the last calculated mean and sd
+  list(full_df = metric_df_normalized_CI_tier, 
+       mean = mean.Normalized.Sum.of.Presence.and.WR, 
+       sd = sd.Normalized.Sum.of.Presence.and.WR)
 }
 
 

@@ -402,8 +402,8 @@ tier_list_graph = function(archetypeTiersDf, chartShare, presence,
   
   most_present_archetypes$TiersMetric = unlist(most_present_archetypes[tier])
   
-  meanData = mean(most_present_archetypes$TiersMetric)
-  sdData = sd(most_present_archetypes$TiersMetric)
+  meanData = archetypeTiersDf$mean
+  sdData = archetypeTiersDf$sd
   meanPlusSd = meanData + sdData
   meanMinusSd = meanData - sdData
   
