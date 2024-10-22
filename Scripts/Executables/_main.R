@@ -113,7 +113,7 @@ dev.off()
 # Draw the win rate graph with confidence intervals
 winrateMustacheName = paste0(plotDir,"03_Winrate-Mustache-Box_", MtgFormat ,"_", 
                      Beginning, "_", End,".jpg")
-winrates_graph(archetypeMetricsDf, StatShare, Presence, Beginning, End,
+winrates_graph(archetypeWithTiersDf, StatShare, Presence, Beginning, End,
                EventType, MtgFormat, SortValue)
 ggsave(winrateMustacheName, width = 40, height = 20, units = "cm")
 dev.off()

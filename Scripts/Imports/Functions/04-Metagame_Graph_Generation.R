@@ -217,6 +217,9 @@ winrates_graph = function(archetypeRankingDf,chartShare,presence,beginning,end,
   most_present_archetypes = 
     archetypeRankingDf[archetypeRankingDf[presence] >= presence_min,]
   
+  # Filter out archetypes with "tier other"
+  most_present_archetypes = most_present_archetypes[most_present_archetypes$Tiers.based.on.Lower.Bound.of.CI.on.WR != "Other", ]
+
   # Reorder archetypes by ascending average winrate
   most_present_archetypes$Archetype = 
     reorder(most_present_archetypes$Archetype, unlist(most_present_archetypes[sortValue]))
@@ -395,10 +398,11 @@ tier_list_graph = function(archetypeTiersDf, chartShare, presence, beginning,
   # mtgFormat = MtgFormat
   # tier = Tiers[1]
   
-  # Keep only the most present decks
+  # Keep only the most present decks and filter out "tier other"
   presence_min = chartShare/100*sum(unlist(archetypeTiersDf[[presence]]))
   most_present_archetypes = 
-    archetypeTiersDf[archetypeTiersDf[presence] >= presence_min,]
+    archetypeTiersDf[archetypeTiersDf[presence] >= presence_min &
+                       archetypeTiersDf$Tiers.based.on.Lower.Bound.of.CI.on.WR != "Other",]
   
   most_present_archetypes$TiersMetric = unlist(most_present_archetypes[tier])
   
