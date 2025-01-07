@@ -19,11 +19,12 @@ player_results <- data.frame(
 # Process each tournament entry
 for (i in seq_along(raw_data)) {                                                                                                                                         
   entry <- raw_data[i, , drop=FALSE]
-  # Check if this entry matches our target archetype
+  # Check if this entry matches our target archetype and date
   if (!is.null(entry$Archetype) && 
       !is.null(entry$Archetype$Archetype) && 
       entry$Archetype$Archetype == TARGET_ARCHETYPE && 
-      !is.null(entry$Matchups)) {
+      !is.null(entry$Matchups) &&
+      as.Date(entry$Date) >= as.Date("2024-12-16")) {
     
     # Calculate match wins/losses for this tournament
     match_wins <- sum(sapply(entry$Matchups, function(m) m$Wins == 2))

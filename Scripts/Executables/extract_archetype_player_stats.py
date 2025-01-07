@@ -25,9 +25,12 @@ def main():
 
     # Process each tournament entry
     for entry in raw_data:
-        # Check if entry matches target archetype
+        # Check if entry matches target archetype and date
         archetype = entry.get('Archetype', {}).get('Archetype')
-        if archetype == TARGET_ARCHETYPE and entry.get('Matchups'):
+        date = entry.get('Date', '').split('T')[0]  # Extract date part from ISO format
+        if (archetype == TARGET_ARCHETYPE and 
+            entry.get('Matchups') and 
+            date >= '2024-12-16'):
             player = entry['Player']
             wins, losses = calculate_match_results(entry['Matchups'])
             
