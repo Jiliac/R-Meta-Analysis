@@ -6,7 +6,7 @@ OUTPUT_FILE <- "Data/zoo.csv"
 TARGET_ARCHETYPE <- "Domain Zoo"  # Change this to the archetype you want to analyze
 
 # Read the JSON data
-raw_data <- fromJSON(INPUT_FILE)$Data
+raw_data <- (fromJSON(INPUT_FILE))[[1]]
 
 # Initialize empty dataframe for results
 player_results <- data.frame(
@@ -17,7 +17,8 @@ player_results <- data.frame(
 )
 
 # Process each tournament entry
-for (entry in raw_data) {
+for (i in seq_along(raw_data)) {                                                                                                                                         
+  entry <- raw_data[i, , drop=FALSE]
   # Check if this entry matches our target archetype
   if (!is.null(entry$Archetype) && 
       !is.null(entry$Archetype$Archetype) && 
