@@ -41,7 +41,7 @@ tournamentDf = generate_df(
 
 # Get the following columns: 
 # Archetype Copies Players Matches Measured.Win.Rate Lower.Bound.of.CI.on.WR Upper.Bound.of.CI.on.WR
-archetypeMetricsDf = archetype_metrics(tournamentDf)
+archetypeMetricsDf = archetype_metrics(tournamentDf, Presence)
 
 # Update the cut value based on the data. If too small, set at 1% for graph
 # readability.
@@ -156,7 +156,7 @@ if(mergeUWX){
     },tournamentDf$Matchups)
 }
 
-archetypeName = "WURG Control"
+archetypeName = "Necrodominance"
 optimizedColorData = get_archetype_data_by_color(archetypeName,tournamentDf)
 optimizedColorData
 optimizedColor = optimizedColorData$Colors[1]
@@ -179,6 +179,9 @@ write.xlsx(muMatrixData,
 # Get the required data to build the matchup matrix of a single archetype
 muMatrixDataArchetype = generate_matchup_data(tournamentDf, ChartShare, 
                                               Presence, archetypeName)
+#ggsave(filename = paste0(Beginning, "_", End, "_", MtgFormat, "_", EventType, "_MU_Matrix.png"),                                                                         
+ #       plot = muMatrixPlot, width = 10, height = 8, dpi = 300)
+
 # Draw the corresponding matchup matrix
 generate_matchup_matrix(muMatrixDataArchetype, ChartShare, Presence, Beginning, 
                         End, MtgFormat, EventType)

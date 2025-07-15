@@ -122,7 +122,7 @@ metagame_pie_chart = function(df, chartShare, presence, beginning, end,
 
 #' Bar chart of the most played archetypes
 #'
-#' @param df the dataframe returned by generate_df()
+#' @param archetypeDf the dataframe returned by archetype_tiers()
 #' @param chartShare the value of the cut to be set in "Others" for an archetype.
 #' It must be a numeric value. For a cut at 2%, use chartShare=2 (not 0.02).
 #' @param presence the definition of metagame presence (aka share) to use. 
@@ -141,10 +141,10 @@ metagame_pie_chart = function(df, chartShare, presence, beginning, end,
 #'
 #' @examples
 metagame_bar_chart = 
-  function(df,chartShare,presence,beginning,end,eventType,mtgFormat){
+  function(archetypeDf,chartShare,presence,beginning,end,eventType,mtgFormat){
   
   # Get the necessary data for the graph
-  metagame_df = generate_metagame_data(df,chartShare,presence)
+  metagame_df = archetypeDf
   # Remove the "Other" category
   metagame_df = metagame_df[!grepl("Other",metagame_df$Archetype),]
   # Reorder archetypes by ascending presence
@@ -163,18 +163,18 @@ metagame_bar_chart =
   # scale_fill_manual(values = graph_colors) +
   
   #plot is much clearer
-  ggplot(metagame_df, aes(x=Archetype, y=as.numeric(Share), fill=Archetype)) + 
+  ggplot(metagame_df, aes(x=Archetype, y=as.numeric(Presence), fill=Archetype)) + 
     
     geom_bar(stat="identity") + theme_minimal() + guides( fill = FALSE) +
     
-    geom_text(aes(label = paste0(Share, "%")), hjust = 1.1, size = 4) +
+    geom_text(aes(label = paste0(format(round(as.numeric(Presence), 1), nsmall = 1), "%")), hjust = 1.1, size = 4) +
     
     labs(x = NULL, y = NULL, fill = NULL, 
          title = bar_chart_title, subtitle = paste("by", author_name)) + 
     
     coord_flip() +
     
-    scale_y_continuous(limits = c(0,max(metagame_df$Share)*1.1), expand = c(0.01, 0)) +
+    scale_y_continuous(limits = c(0,max(metagame_df$Presence)*1.1), expand = c(0.01, 0)) +
     
     theme(plot.title = element_text(hjust = 0.5, color = "#111111",size = 18),
           plot.subtitle = element_text(hjust = 0.5,size = 16),

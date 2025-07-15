@@ -297,6 +297,7 @@ archetype_metrics = function(df, presence){
 #' @examples
 updateStatShare = function(metric_df,ChartShare){
   if(Share.autoupdate){
+    # StatShare = 1.0
     StatShare =
       round(mean(unlist(metric_df$Presence)) /
         sum(unlist(metric_df$Presence)) * 100, digits = 2)
@@ -427,8 +428,10 @@ archetype_tiers = function(metric_df_normalized, tierNames){
     metric_df_normalized_CI_tier$Lower.Bound.of.CI.on.WR >= 
       meanLower.Bound.of.CI.on.WR + 3 * sdLower.Bound.of.CI.on.WR ~ "0",
     metric_df_normalized_CI_tier$Lower.Bound.of.CI.on.WR >= 
+      # meanLower.Bound.of.CI.on.WR + 1.8 * sdLower.Bound.of.CI.on.WR ~ "0.5",
       meanLower.Bound.of.CI.on.WR + 2 * sdLower.Bound.of.CI.on.WR ~ "0.5",
     metric_df_normalized_CI_tier$Lower.Bound.of.CI.on.WR >= 
+      # meanLower.Bound.of.CI.on.WR + 0.8 * sdLower.Bound.of.CI.on.WR ~ "1",
       meanLower.Bound.of.CI.on.WR + 1 * sdLower.Bound.of.CI.on.WR ~ "1",
     metric_df_normalized_CI_tier$Lower.Bound.of.CI.on.WR >= 
       meanLower.Bound.of.CI.on.WR ~ "1.5",

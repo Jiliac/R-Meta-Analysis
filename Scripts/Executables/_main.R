@@ -105,7 +105,7 @@ dev.off()
 # Draw the metagame bar chart
 barName = paste0(plotDir,"02_Presence-Bar-Chart_By-", Presence, "_", MtgFormat ,
                  "_", Beginning, "_", End, ".jpg")
-metagame_bar_chart(tournamentDf, StatShare, Presence, Beginning, End, EventType, 
+metagame_bar_chart(archetypeWithTiersDf, StatShare, Presence, Beginning, End, EventType, 
                    MtgFormat)
 ggsave(barName, width = 30, height = 20, units = "cm")
 dev.off()

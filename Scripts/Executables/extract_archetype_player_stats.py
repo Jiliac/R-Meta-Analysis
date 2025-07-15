@@ -6,8 +6,8 @@ from pathlib import Path
 
 # Configuration
 INPUT_FILE = "Data/Tournament/Modern_data.json"
-OUTPUT_FILE = "Data/zoo.csv"
-TARGET_ARCHETYPE = "Domain Zoo"  # Change this to the archetype you want to analyze
+OUTPUT_FILE = "Data/hollow_one.csv"
+TARGET_ARCHETYPE = "Hollow One"  # Change this to the archetype you want to analyze
 
 def calculate_match_results(matchups: List[Dict]) -> Tuple[int, int]:
     """Calculate total match wins and losses from matchups data"""

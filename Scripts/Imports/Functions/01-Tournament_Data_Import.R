@@ -209,7 +209,7 @@ generate_df = function(rawData, eventType, mtgFormat, tournamentDataPath,
     
     if (eventType == EventTypes[15]) {
       # "15" = "MTGO Events"
-      resultDf = MTGOData
+      resultDf = recalculate_wins_losses(MTGOData)
       
     } else if (eventType == EventTypes[16]) {
       # "16" = "MTGO Challenges and Qualifiers"
