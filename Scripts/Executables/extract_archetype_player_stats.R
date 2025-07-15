@@ -3,7 +3,7 @@ library(jsonlite)
 # Configuration
 INPUT_FILE <- "Data/Tournament/Modern_data.json"
 OUTPUT_FILE <- "Data/zoo.csv"
-TARGET_ARCHETYPE <- "Domain Zoo"  # Change this to the archetype you want to analyze
+TARGET_ARCHETYPE <- "Orzhov Blink"  # Change this to the archetype you want to analyze
 
 # Read the JSON data
 raw_data <- (fromJSON(INPUT_FILE))[[1]]

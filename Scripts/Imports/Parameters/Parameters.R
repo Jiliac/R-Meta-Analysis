@@ -43,7 +43,7 @@ Beginning = "2025-06-14"
 # Beginning = "2025-07-01"
 
 #Latest date - if NA, goes up to the end of the data
-End = "2025-07-14"
+End = "2025-07-15"
 
 # Event type:
 # All sources = Everything (except from MTGO Leagues and Team events - for any filter)
